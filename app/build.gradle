@@ -38,4 +38,12 @@ dependencies {
     androidTestImplementation libs.ext.junit
     androidTestImplementation libs.espresso.core
     implementation libs.cardview
+    implementation libs.retrofit
+    implementation(libs.glide)
+    // GSON
+    implementation libs.converter.gson
+    implementation libs.gson
+
+    // Interceptor
+    implementation libs.logging.interceptor
 }

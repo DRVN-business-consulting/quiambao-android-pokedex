@@ -1,16 +1,19 @@
 package com.example.mypokedex;
 
 import android.os.Bundle;
-import android.view.View;
-import android.widget.ImageView;
-import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
+
+import com.example.mypokedex.fragments.FavoritesFragment;
+import com.example.mypokedex.fragments.PokemonFragment;
+import com.example.mypokedex.fragments.TrainerFragment;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 public class PokemonDetails extends AppCompatActivity {
 
-    private ImageView ivPokemonImage;
-    private TextView tvPokemonName, tvPokemonSpecies, tvPokemonDescription;
+
 
 
     @Override
@@ -18,32 +21,36 @@ public class PokemonDetails extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.pokemon_detail);
 
-        // Get references to UI elements
-        ivPokemonImage = findViewById(R.id.ivPokemonImage);
-        tvPokemonName = findViewById(R.id.tvPokemonName);
-        tvPokemonSpecies = findViewById(R.id.tvPokemonSpecies);
-        tvPokemonDescription = findViewById(R.id.tvPokemonDescription);
+
+        BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
+
+
+        loadFragment(new PokemonFragment());  // Make sure this fragment shows the details properly
+
+        // Handle bottom navigation item clicks
+        bottomNavigationView.setOnItemSelectedListener(item -> {
+            Fragment selectedFragment = null;
+                if (item.getItemId() == R.id.nav_pokemons){
+                    selectedFragment = new PokemonFragment();
+                } else if (item.getItemId() == R.id.nav_favorites){
+                    selectedFragment = new FavoritesFragment();
+                } else if (item.getItemId() == R.id.nav_trainer){
+                    selectedFragment = new TrainerFragment();
+                };
 
 
 
-        // Get the data passed from PokeDex Activity
-        String pokemonName = getIntent().getStringExtra("pokemon_name");
-        int pokemonImage = getIntent().getIntExtra("pokemon_image", 0); // Default to 0 if no image
-        String pokemonSpecies = getIntent().getStringExtra("pokemon_species");
-        String pokemonDescription = getIntent().getStringExtra("pokemon_description");
-
-
-        // Set data to UI elements
-        ivPokemonImage.setImageResource(pokemonImage);
-        tvPokemonName.setText(pokemonName);
-        tvPokemonSpecies.setText(pokemonSpecies);
-        tvPokemonDescription.setText(pokemonDescription);
-
-        ivPokemonImage.setOnClickListener(view -> {
-
-            finish();
+            if (selectedFragment != null) {
+                loadFragment(selectedFragment);
+            }
+            return true;
         });
-
     }
 
+    // Method to load the selected fragment into the fragment container
+    private void loadFragment(Fragment fragment) {
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        transaction.replace(R.id.fragment_container, fragment);  // Make sure you have a fragment container in your layout
+        transaction.commit();
+    }
 }

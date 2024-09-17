@@ -1,9 +1,7 @@
 package com.example.mypokedex;
 
 import android.content.Intent;
-import android.graphics.Color;
 import android.os.Bundle;
-
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -14,86 +12,106 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.example.mypokedex.api.API;
+import com.example.mypokedex.dto.request.LoginDto;
+import com.example.mypokedex.dto.response.RefreshTokenDto;
+import com.example.mypokedex.model.Pokemon;
+import com.example.mypokedex.prefs.AppPreferences;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
 public class MainActivity extends AppCompatActivity {
+
+    private EditText usernameEditText;
+    private EditText passwordEditText;
+    private Button loginButton;
+    private Button signupButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-
-
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
 
-        });
+        // Initialize AppPreferences
+        AppPreferences.initialize(this);
 
+        // Initialize UI elements
+        usernameEditText = findViewById(R.id.username); // Ensure these IDs match your XML layout
+        passwordEditText = findViewById(R.id.password);
+        loginButton = findViewById(R.id.login_button);
+        signupButton = findViewById(R.id.signup_button);
 
-        EditText usernameEditText = findViewById(R.id.username);
-        EditText passwordEditText = findViewById(R.id.password);
-        Button loginButton = findViewById(R.id.login_button);
+        // Login button onClick listener
+        loginButton.setOnClickListener(view -> {
+            String username = usernameEditText.getText().toString().trim();
+            String password = passwordEditText.getText().toString().trim();
 
-        loginButton.setOnClickListener(v -> {
-            // Reset input field backgrounds to default color (e.g., white)
-            usernameEditText.setBackgroundColor(Color.WHITE);
-            passwordEditText.setBackgroundColor(Color.WHITE);
-
-            // Check if the entered credentials match the hardcoded ones
-            String username = "admin";
-            String password = "password123";
-            String enteredUsername = usernameEditText.getText().toString();
-            String enteredPassword = passwordEditText.getText().toString();
-
-            if (enteredUsername.equals(username) && enteredPassword.equals(password)) {
-                Toast.makeText(MainActivity.this, "Login successful", Toast.LENGTH_SHORT).show();
-                // Proceed to the next activity
-                Intent intent = new Intent(MainActivity.this, PokeDex.class); // Replace NextActivity.class with your actual next activity
-                startActivity(intent);
-            } else {
-                // Show invalid credentials message and highlight fields
-                Toast.makeText(MainActivity.this, "Invalid credentials", Toast.LENGTH_SHORT).show();
-
-                // Highlight the fields if they are incorrect
-                if (!enteredUsername.equals(username)) {
-                    usernameEditText.setBackgroundColor(Color.RED);
-                }
-                if (!enteredPassword.equals(password)) {
-                    passwordEditText.setBackgroundColor(Color.RED);
-                }
+            // Validate user input
+            if (username.isEmpty()) {
+                usernameEditText.setError("Username cannot be empty");
+                usernameEditText.requestFocus();
+                return;
             }
 
+            if (password.isEmpty()) {
+                passwordEditText.setError("Password cannot be empty");
+                passwordEditText.requestFocus();
+                return;
+            }
+
+            // Proceed to login if input is valid
+            loginUser(username, password);
         });
-        usernameEditText.setOnFocusChangeListener((v, hasFocus) -> {
+
+        // Signup button onClick listener
+        signupButton.setOnClickListener(view -> {
+            // Navigate to SignupActivity
+            Intent intent = new Intent(MainActivity.this, Signupactivity.class);
+            startActivity(intent);
+        });
+
+        // Handle focus change on username and password fields
+        usernameEditText.setOnFocusChangeListener((view, hasFocus) -> {
             if (hasFocus) {
-                // Remove hint when EditText is clicked (gains focus)
                 usernameEditText.setHint("");
-            } else {
-                // Restore hint if no text is entered when EditText loses focus
-                if (usernameEditText.getText().toString().isEmpty()) {
-                    usernameEditText.setHint(R.string.edittext_username);
-                }
+            } else if (usernameEditText.getText().toString().isEmpty()) {
+                usernameEditText.setHint(R.string.edittext_username);
             }
         });
-        passwordEditText.setOnFocusChangeListener((v, hasFocus) -> {
+
+        passwordEditText.setOnFocusChangeListener((view, hasFocus) -> {
             if (hasFocus) {
-                // Remove hint when EditText is clicked (gains focus)
                 passwordEditText.setHint("");
-            } else {
-                // Restore hint if no text is entered when EditText loses focus
-                if (passwordEditText.getText().toString().isEmpty()) {
-                    passwordEditText.setHint(R.string.edittext_password);
+            } else if (passwordEditText.getText().toString().isEmpty()) {
+                passwordEditText.setHint(R.string.edittext_password);
+            }
+        });
+    }
+
+    // The loginUser method handles the API call to login the user
+    private void loginUser(String username, String password) {
+        // Make the API call to log in
+        API.userApi().login(new LoginDto(username, password)).enqueue(new Callback<RefreshTokenDto>() {
+            @Override
+            public void onResponse(Call<RefreshTokenDto> call, Response<RefreshTokenDto> response) {
+                if (response.isSuccessful()) {
+                    // Handle successful login: save tokens, navigate to PokeDex activity
+                    Toast.makeText(MainActivity.this, "Login successful", Toast.LENGTH_SHORT).show();
+                    Intent intent = new Intent(MainActivity.this, PokemonDetails.class);
+                    startActivity(intent);
+                } else {
+                    // Handle login failure (e.g., invalid credentials)
+                    Toast.makeText(MainActivity.this, "Invalid login credentials", Toast.LENGTH_SHORT).show();
                 }
+            }
+
+            @Override
+            public void onFailure(Call<RefreshTokenDto> call, Throwable t) {
+                // Handle network errors or other failures
+                Toast.makeText(MainActivity.this, "Login failed: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
 }
-
-
-
-
-
-
-
-

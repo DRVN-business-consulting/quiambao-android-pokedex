@@ -1,3 +1,4 @@
+/*
 package com.example.mypokedex;
 
 import android.content.Intent;
@@ -50,3 +51,4 @@ public class PokeDex extends AppCompatActivity {
     }
 
 }
+*/
