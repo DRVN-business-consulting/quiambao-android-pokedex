@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">MyPokeDex</string>
+    <string name="edittext_username"><font size="20" >Username</font></string>
+    <string name="edittext_password"><font size="20" >Password</font></string>
+</resources>
